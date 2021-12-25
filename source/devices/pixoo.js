@@ -185,7 +185,72 @@ export default class Pixoo {
 	// --- Custom channel ---
 
 	custom(settings) {
-		throw new Error("Custom channel is not implemented yet.");
+		// 0 = #000000 etc.
+		const colorMap = ['000000', 'FF0000', '00FF00', '0000FF', 'FF00FF', 'FFFFFF'];
+		const image = [
+			'0000000000000000',
+			'0111000000002220',
+			'0101000000002020',
+			'0111000000002220',
+			'0000000000000000',
+			'5050550500500555',
+			'5050500500500505',
+			'5550550500500505',
+			'5050500500500505',
+			'5050550550550555',
+			'0000000000000000',
+			'0000000000000000',
+			'0333000000004440',
+			'0303000000004040',
+			'0333000000004440',
+			'0000000000000000',
+		];
+
+		const colorData = [];
+		const pixelData = [];
+		for (let x = 0; x < 16; x++) {
+			for (let y = 0; y < 16; y++) {
+				const val = image[y][x];
+				const color = colorMap[parseInt(val)]
+
+				if (!colorData.includes(color)) colorData.push(color);
+
+				pixelData[x + 16 * y] = colorData.indexOf(color);
+			}	
+		}
+
+		// RRGGBBRRGGBB etc.
+		const colorString = colorData.join('');
+
+		// This part is mostly copied from https://github.com/RomRider/node-divoom-timebox-evo/blob/master/PROTOCOL.md#pixel-string-pixel_data
+		let nbBitsForAPixel = Math.log(colorData.length) / Math.log(2);
+		let bits = Number.isInteger(nbBitsForAPixel)
+			? nbBitsForAPixel
+			: (Math.trunc(nbBitsForAPixel) + 1);
+		if (bits === 0) bits = 1;
+
+		let pixelString = '';
+		pixelData.forEach((pixel) => {
+			pixelString += pixel.toString(2).padStart(8, '0').split("").reverse().join("").substring(0, bits)
+		})
+
+		let pixBinArray = pixelString.match(/.{1,8}/g);
+		let pixelStringFinal = '';
+		pixBinArray.forEach((pixel) => {
+			pixelStringFinal += parseInt(pixel.split("").reverse().join(""), 2).toString(16).padStart(2, '0');
+		})
+
+		const message = [
+			'44000A0A04', // Header
+			'AA', // Image start
+			this._intLittleHex((14 + colorString.length * 6 + pixelStringFinal.length) / 2), // length
+			'000000', // animation frame time (0 for image)
+			this._intHex(colorData.length), // color count (00 for 256)
+			colorString,
+			pixelStringFinal
+		].join("");
+		console.log("image:", message);
+		return this._compile(this._assembleMessage(message));;
 	}
 	
 	// --- Switch channels ---

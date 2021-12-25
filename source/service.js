@@ -103,7 +103,11 @@ export default class Service {
 			settings.mode = modes.includes(req.query.mode) ? req.query.mode : "time";
 		}
 
-		const msg = this.device.channel(settings); 
+		let msg = this.device.channel(settings); 
+
+		if (settings.mode == 'custom') {
+			msg = this.device.custom();
+		}
 		this.connection.writeAll(msg);
 
 		return this._status(req, res);
