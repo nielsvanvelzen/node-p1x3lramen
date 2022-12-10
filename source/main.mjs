@@ -1,7 +1,7 @@
 /* eslint-env node */
-import Connection from "./connection.js";
-import Service from "./service.js";
-import Pixoo from "./devices/pixoo.js";
+import Connection from "./connection.mjs";
+import Service from "./service.mjs";
+import Pixoo from "./devices/pixoo.mjs";
 import fs from "fs";
 
 const DEFAULTS = {
@@ -86,7 +86,8 @@ OPTIONS
 	// Let's disconnect properly when the app is done, shall we? Oh, there is some sh** going
 	// on with windows (as usual) let's handle that first.
 	if (process.platform === "win32") {
-		let rl = require("readline").createInterface({
+		const readline = await import('readline');
+		let rl = readline.createInterface({
 			input: process.stdin,
 			output: process.stdout
 		});

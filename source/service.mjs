@@ -6,7 +6,7 @@ import {
 	testDateTimeIntegration,
 	testClimateIntegration,
 	testBrightnessIntegration
-} from "./integration.js";
+} from "./integration.mjs";
 
 const DEFAULTS = {
 	port: 8000,
